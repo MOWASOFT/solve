@@ -85,57 +85,63 @@
   </div>
 
   <script>
-    function calculateTax() {
-      let income = parseFloat(document.getElementById("income").value);
-      if (isNaN(income) || income <= 0) {
-        document.getElementById("results").innerHTML = "<p style='color:red;'>Please enter a valid income amount.</p>";
-        return;
-      }
+      function calculateTax() {
+    let income = parseFloat(document.getElementById("income").value);
+    if (isNaN(income) || income <= 0) {
+      document.getElementById("results").innerHTML = "<p style='color:red;'>Please enter a valid income amount.</p>";
+      return;
+    }
 
-      const brackets = [
-        { limit: 800000, rate: 0 },
-        { limit: 2200000, rate: 0.15 },
-        { limit: 9000000, rate: 0.18 },
-        { limit: 13000000, rate: 0.21 },
-        { limit: 25000000, rate: 0.23 },
-        { limit: Infinity, rate: 0.25 }
-      ];
+    const brackets = [
+      { width: 800000, rate: 0 },
+      { width: 2200000, rate: 0.15 },
+      { width: 9000000, rate: 0.18 },
+      { width: 13000000, rate: 0.21 },
+      { width: 25000000, rate: 0.23 },
+      { width: Infinity, rate: 0.25 }
+    ];
 
-      let remaining = income;
-      let resultsHTML = `
-        <table>
-          <tr>
-            <th>Bracket</th>
-            <th>Taxable Amount (₦)</th>
-            <th>Rate</th>
-            <th>Tax (₦)</th>
-          </tr>
+    let remaining = income;
+    let resultsHTML = `
+      <table>
+        <tr>
+          <th>Bracket</th>
+          <th>Taxable Amount (₦)</th>
+          <th>Rate</th>
+          <th>Tax (₦)</th>
+        </tr>
+    `;
+
+    let totalTax = 0;
+    let cumulative = 0;
+
+    for (let i = 0; i < brackets.length; i++) {
+      if (remaining <= 0) break;
+
+      // How much income falls into this bracket
+      let taxable = Math.min(remaining, brackets[i].width);
+      let tax = taxable * brackets[i].rate;
+
+      resultsHTML += `
+        <tr>
+          <td>${i === brackets.length - 1 
+              ? "Above ₦50,000,000" 
+              : `₦${(cumulative+1).toLocaleString()} - ₦${(cumulative+taxable).toLocaleString()}`}</td>
+          <td>${taxable.toLocaleString()}</td>
+          <td>${(brackets[i].rate * 100).toFixed(0)}%</td>
+          <td>${tax.toLocaleString()}</td>
+        </tr>
       `;
 
-      let totalTax = 0;
-      for (let i = 0; i < brackets.length; i++) {
-        if (remaining <= 0) break;
-
-        let taxable = Math.min(remaining, brackets[i].limit);
-        let tax = taxable * brackets[i].rate;
-
-        resultsHTML += `
-          <tr>
-            <td>${i === brackets.length - 1 ? "Above ₦50,000,000" : "Up to ₦" + brackets[i].limit.toLocaleString()}</td>
-            <td>${taxable.toLocaleString()}</td>
-            <td>${(brackets[i].rate * 100).toFixed(0)}%</td>
-            <td>${tax.toLocaleString()}</td>
-          </tr>
-        `;
-
-        totalTax += tax;
-        remaining -= taxable;
-      }
-
-      resultsHTML += `</table>`;
-      resultsHTML += `<p class="total">Total Tax Payable: ₦${totalTax.toLocaleString()}</p>`;
-      document.getElementById("results").innerHTML = resultsHTML;
+      totalTax += tax;
+      remaining -= taxable;
+      cumulative += taxable;
     }
+
+    resultsHTML += `</table>`;
+    resultsHTML += `<p class="total">Total Tax Payable: ₦${totalTax.toLocaleString()}</p>`;
+    document.getElementById("results").innerHTML = resultsHTML;
+  }
   </script>
 </body>
 </html>
